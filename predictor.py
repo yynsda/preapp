@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import shap
 import matplotlib.pyplot as plt
+import joblib
 
 # 加载训练好的随机森林模型
 model = joblib.load('RF.pkl')
