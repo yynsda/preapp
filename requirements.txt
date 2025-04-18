@@ -1,5 +1,5 @@
-Streamlit version==1.37.1
-NumPy version==1.26.4
-Pandas version==2.2.2
-SHAP version==0.47.0
-Matplotlib version==3.9.2
+Streamlit==1.37.1
+NumPy==1.26.4
+Pandas==2.2.2
+SHAP==0.47.0
+Matplotlib==3.9.2
