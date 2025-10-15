@@ -5,70 +5,130 @@ import pandas as pd
 import shap
 import matplotlib.pyplot as plt
 import joblib
+from openai import OpenAI
+
+def chat():
+    client = OpenAI(
+        api_key="sk-5756c3dfa55645c6a2aa1ccbf38f2f49",
+        base_url="https://api.deepseek.com"
+    )
+
+    # 3. 请求 DeepSeek API
+    response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=[
+            {"role": "system", "content": "你是一位专业的老年健康管理师，擅长用通俗中文给出实用健康建议。"},
+            {"role": "user", "content": prompt},
+        ]
+    )
+
+    # 4. 显示建议
+    advice = response.choices[0].message.content
+    st.write("💡 **个性化健康建议：**")
+    st.markdown(advice)
+
+
+
+# 定义特征名称对应数据集中的列名
+df = pd.read_csv('data3.csv')
+feature_names = df.columns[:9].tolist()   #
 
 # 加载训练好的随机森林模型
 model = joblib.load('rf.pkl')
-# 加载测试数据集（假设已经存在）
-X_test = pd.read_csv("x_test.csv")
-
-# 定义特征名称对应数据集中的列名
-feature_names = X_test.columns[:7].tolist()  # 假设只使用前三个特征
-
+scaler = joblib.load('scaler.pkl')
 # Streamlit 用户界面
 st.title("跌倒预测器")  # 设置网页标题
 
 # 用户输入
-age= st.number_input("年龄:", min_value=60, max_value=105, value=60)
+# 人口学特征
+age = st.number_input("年龄:", min_value=60, max_value=105, value=60)
 gender = st.selectbox("性别:", options=[0, 1], format_func=lambda x: "男" if x == 1 else "女")
-waist = st.number_input("腰围(cm):", min_value=57.0, max_value=115.0, value=97.0,step=0.1)
-sleep = st.number_input("夜晚睡眠时长(h):", min_value=1.0, max_value=12.0, value=8.0, step=0.1)
-lgrip = st.number_input("左手握力(kg):", min_value=1.0, max_value=60.0, value=10.0, step=0.1)
-depression = st.selectbox("抑郁情况:", options=[1, 2, 3, 4], format_func=lambda x: f" {x}级")
-diabete = st.selectbox("糖尿病:", options=[0, 1], format_func=lambda x: "是" if x == 1 else "否")
 
+# 体检类特征
+lgrip = st.number_input("左手握力(kg):", min_value=1.0, max_value=60.0, value=10.0, step=0.1)
+height = st.number_input("身高(cm):", min_value=100.0, max_value=220.0, value=170.0, step=0.1)
+weight = st.number_input("体重(kg):", min_value=30.0, max_value=150.0, value=65.0, step=0.1)
+
+# 生活方式特征
+sleep = st.number_input("夜晚睡眠时长(h):", min_value=1.0, max_value=12.0, value=8.0, step=0.1)
+wushui = st.number_input("午睡时长(h):", min_value=0.0, max_value=5.0, value=0.5, step=0.1)
+
+# 精神状态
+yiyu = st.number_input("抑郁量表 (CESD-10 得分):", min_value=0, max_value=30, value=10, step=1)
+
+# 身体能力
+zhanli = st.selectbox("五次坐站测试情况:", options=[1, 2, 3, 4],format_func=lambda x: f"第 {x} 级")
 
 # 将用户输入组合成特征向量
-feature_values=[age, gender, waist, sleep, lgrip, depression, diabete]
+feature_values = [lgrip, age, sleep, yiyu, wushui, height, weight, zhanli, gender]
 features = np.array([feature_values])
+
+# 拆分数值型与分类特征
+features_num = features[:, :7]       # 前7列，需标准化
+features_cat = features[:, 7:]       # 后2列，原始（离散型）
+# 标准化
+features_num_scaled = scaler.transform(features_num)
+# 合并
+features = np.hstack((features_num_scaled, features_cat))
 
 # 当用户点击 "Predict" 按钮时执行预测
 if st.button("Predict"):
-    # 预测类别 (0: 无跌倒风险，1: 有跌倒风险)
-    predicted_class = model[0].predict(features)[0]
-    # 预测类别的概率
-    predicted_proba = model[0].predict_proba(features)[0]
-    # 显示预测结果
-    st.write(f"**Predicted class:** {predicted_class} (1: High Risk of Fall, 0: Low Risk of Fall)")
-    st.write(f"**Prediction probabilities:** {predicted_proba}")
-    
-    # 根据预测结果生成建议
-    probability = predicted_proba[predicted_class] * 100
-    if predicted_class == 1:
-        advice = (f"According to our model, you have a high risk of falling. "
-                  f"The model predicts that your probability of falling is {probability:.1f}%. "
-                  "It's advised to take extra precautions, such as using assistive devices, "
-                  "improving home safety, and consulting with a healthcare provider.")
-    else:
-        advice = (f"According to our model, you have a low risk of falling. "
-                  f"The model predicts that your probability of not falling is {probability:.1f}%. "
-                  "However, maintaining balance and strength exercises can further reduce the risk. "
-                  "Please continue regular check-ups with your healthcare provider.")
-    # 显示建议
-    st.write(advice)
-    
+    predicted_class = model.predict(features)[0]
+    predicted_proba = round(model.predict_proba(features)[0][1], 3)
+
+    # 1. 组合用户所有输入特征，推荐用中英文，越详细越好
+    user_info = (
+        f"年龄: {age}岁，性别: {'男' if gender == 1 else '女'}，左手握力: {lgrip}kg，"
+        f"身高: {height}cm，体重: {weight}kg，夜间睡眠: {sleep}小时，午睡: {wushui}小时，"
+        f"抑郁量表: {yiyu}分，五次坐站测试等级: {zhanli}级。"
+    )
+
+    # 2. 用英文或中文给LLM完整描述问题
+    prompt = (
+        f"已知某老年人特征如下：{user_info}\n"
+        f"模型预测该用户的跌倒风险为：{'高' if predicted_class == 1 else '低'} "
+        f"（概率约为 {predicted_proba * 100:.1f}%）。\n"
+        f"请你作为专业健康管理师，基于以上信息和风险预测，给出详细、实用、个性化的健康建议（包含运动建议、居家环境、心理、饮食、家属提醒等）。请用中文作答。"
+    )
+    # 3. 调用函数
+    chat()
+
     # SHAP 解释
     st.subheader("SHAP Force plot Explanation")
 
-
-
     # 创建 SHAP 解释器，基于树模型（如随机森林）
-    explainer_shap = shap.TreeExplainer(model[0])
+    explainer_shap = shap.Explainer(model)
     # 计算 SHAP 值，用于解释模型的预测
-    shap_values = explainer_shap(pd.DataFrame([feature_values],columns=feature_names))
-    # 使用 Matplotlib 绘图
-    if predicted_class == 1:
-        shap.force_plot(explainer_shap.expected_value[1], shap_values[1].values[:, 1], matplotlib=True, show=True,feature_names=feature_names)
-    else:
-        shap.force_plot(explainer_shap.expected_value[0], shap_values[0].values[:, 0], matplotlib=True, show=True,feature_names=feature_names)
-    plt.savefig("shap_force_plot.png",bbox_inches='tight',dpi=300)
-    st.image("shap_force_plot.png",caption='SHAP Force Plot Explanation')
+    shap_values = explainer_shap(pd.DataFrame(features, columns=feature_names))
+
+    # 力图
+    shap.force_plot(explainer_shap.expected_value[1], shap_values[0].values[:, 1], matplotlib=True, show=True,
+                        feature_names=feature_names)
+    plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
+    st.image("shap_force_plot.png", caption='SHAP Force Plot Explanation')
+    #st.write("shap_values.values.shape =", shap_values.values.shape)
+
+    # ---- 决策图（Decision Plot） ----
+    class_idx = 1#predicted_class  # 0或1
+    sv = shap_values.values[:, :, class_idx]  # shape (1, 9)
+    print("decision_plot input shape:", sv.shape)
+    plt.figure()
+    shap.decision_plot(
+        explainer_shap.expected_value[class_idx],
+        sv,feature_names=feature_names )
+    plt.savefig("shap_decision_plot.png", bbox_inches='tight', dpi=300)
+    st.image("shap_decision_plot.png", caption='SHAP Decision Plot')
+    # ---瀑布图
+    # 生成单样本、单类别的 SHAP Explanation
+    single_sample_shap = shap.Explanation(
+        values=shap_values.values[0, :, class_idx],  # shape (n_features,)
+        base_values=explainer_shap.expected_value[class_idx],  # base value for该类
+        data=features[0],  # 输入原始特征（长度n_features）
+        feature_names=feature_names
+    )
+
+    # 绘制 waterfall
+    plt.figure()
+    shap.plots.waterfall(single_sample_shap, max_display=9)
+    plt.savefig("shap_waterfall_plot.png", bbox_inches='tight', dpi=300)
+    st.image("shap_waterfall_plot.png", caption="SHAP Waterfall Plot")
