@@ -126,7 +126,7 @@ if st.button("Predict"):
     # 力图
     shap.force_plot(explainer_shap.expected_value[1], shap_values[0].values[:, 1], matplotlib=True, show=True,
                         feature_names=feature_names)
-   # plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
+    plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
     st.image("shap_force_plot.png", caption='SHAP Force Plot Explanation')
     #st.write("shap_values.values.shape =", shap_values.values.shape)
 
@@ -138,7 +138,7 @@ if st.button("Predict"):
     shap.decision_plot(
         explainer_shap.expected_value[class_idx],
         sv,feature_names=feature_names )
-   # plt.savefig("shap_decision_plot.png", bbox_inches='tight', dpi=300)
+    plt.savefig("shap_decision_plot.png", bbox_inches='tight', dpi=300)
     st.image("shap_decision_plot.png", caption='SHAP Decision Plot')
     # ---瀑布图
     # 生成单样本、单类别的 SHAP Explanation
@@ -152,5 +152,5 @@ if st.button("Predict"):
     # 绘制 waterfall
     plt.figure()
     shap.plots.waterfall(single_sample_shap, max_display=9)
-    #plt.savefig("shap_waterfall_plot.png", bbox_inches='tight', dpi=300)
+    plt.savefig("shap_waterfall_plot.png", bbox_inches='tight', dpi=300)
     st.image("shap_waterfall_plot.png", caption="SHAP Waterfall Plot")
