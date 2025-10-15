@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 import joblib
 from openai import OpenAI
 
+plt.rcParams['font.sans-serif'] = ['SimSun']  # 黑体（适用于 Windows）
+plt.rcParams['axes.unicode_minus'] = False    # 解决负号'-'显示为方块的问题
+
+
 def chat():
     client = OpenAI(
         api_key="sk-5756c3dfa55645c6a2aa1ccbf38f2f49",
@@ -26,12 +30,22 @@ def chat():
     advice = response.choices[0].message.content
     st.write("💡 **个性化健康建议：**")
     st.markdown(advice)
-
-
+feature_zh_map = {
+    "tijian_lgrip": "左手握力(kg)",
+    "renkou_age": "年龄",
+    "shenghuo_sleep": "夜间睡眠时长(h)",
+    "jingshen_yiyu": "抑郁量表",
+    "shenghuo_wushui": "午睡时长(h)",
+    "tijian_height": "身高(cm)",
+    "tijian_weight": "体重(kg)",
+    "shenti_zhanli": "五次坐站测试等级",
+    "renkou_gender": "性别"
+}
 
 # 定义特征名称对应数据集中的列名
 df = pd.read_csv('data3.csv')
 feature_names = df.columns[:9].tolist()   #
+feature_names = [feature_zh_map.get(f, f) for f in feature_names]
 
 # 加载训练好的随机森林模型
 model = joblib.load('rf.pkl')
@@ -40,24 +54,32 @@ scaler = joblib.load('scaler.pkl')
 st.title("跌倒预测器")  # 设置网页标题
 
 # 用户输入
-# 人口学特征
-age = st.number_input("年龄:", min_value=60, max_value=105, value=60)
-gender = st.selectbox("性别:", options=[0, 1], format_func=lambda x: "男" if x == 1 else "女")
+# 第一行
+col1, col2, col3 = st.columns(3)
+with col1:
+    age = st.number_input("年龄", min_value=60, max_value=105, value=60)
+with col2:
+    gender = st.selectbox("性别", options=[0, 1], format_func=lambda x: "男" if x == 1 else "女")
+with col3:
+    lgrip = st.number_input("左手握力(kg)", min_value=1.0, max_value=60.0, value=10.0, step=0.1)
 
-# 体检类特征
-lgrip = st.number_input("左手握力(kg):", min_value=1.0, max_value=60.0, value=10.0, step=0.1)
-height = st.number_input("身高(cm):", min_value=100.0, max_value=220.0, value=170.0, step=0.1)
-weight = st.number_input("体重(kg):", min_value=30.0, max_value=150.0, value=65.0, step=0.1)
+# 第二行
+col4, col5, col6 = st.columns(3)
+with col4:
+    height = st.number_input("身高(cm)", min_value=100.0, max_value=220.0, value=170.0, step=0.1)
+with col5:
+    weight = st.number_input("体重(kg)", min_value=30.0, max_value=150.0, value=65.0, step=0.1)
+with col6:
+    sleep = st.number_input("夜晚睡眠时长(h)", min_value=1.0, max_value=12.0, value=8.0, step=0.1)
 
-# 生活方式特征
-sleep = st.number_input("夜晚睡眠时长(h):", min_value=1.0, max_value=12.0, value=8.0, step=0.1)
-wushui = st.number_input("午睡时长(h):", min_value=0.0, max_value=5.0, value=0.5, step=0.1)
-
-# 精神状态
-yiyu = st.number_input("抑郁量表 (CESD-10 得分):", min_value=0, max_value=30, value=10, step=1)
-
-# 身体能力
-zhanli = st.selectbox("五次坐站测试情况:", options=[1, 2, 3, 4],format_func=lambda x: f"第 {x} 级")
+# 第三行
+col7, col8, col9 = st.columns(3)
+with col7:
+    wushui = st.number_input("午睡时长(h)", min_value=0.0, max_value=5.0, value=0.5, step=0.1)
+with col8:
+    yiyu = st.number_input("抑郁量表 (CESD-10 得分)", min_value=0, max_value=30, value=10, step=1)
+with col9:
+    zhanli = st.selectbox("五次坐站测试情况", options=[1, 2, 3, 4], format_func=lambda x: f"第 {x} 级")
 
 # 将用户输入组合成特征向量
 feature_values = [lgrip, age, sleep, yiyu, wushui, height, weight, zhanli, gender]
@@ -104,7 +126,7 @@ if st.button("Predict"):
     # 力图
     shap.force_plot(explainer_shap.expected_value[1], shap_values[0].values[:, 1], matplotlib=True, show=True,
                         feature_names=feature_names)
-    plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
+   # plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
     st.image("shap_force_plot.png", caption='SHAP Force Plot Explanation')
     #st.write("shap_values.values.shape =", shap_values.values.shape)
 
@@ -116,7 +138,7 @@ if st.button("Predict"):
     shap.decision_plot(
         explainer_shap.expected_value[class_idx],
         sv,feature_names=feature_names )
-    plt.savefig("shap_decision_plot.png", bbox_inches='tight', dpi=300)
+   # plt.savefig("shap_decision_plot.png", bbox_inches='tight', dpi=300)
     st.image("shap_decision_plot.png", caption='SHAP Decision Plot')
     # ---瀑布图
     # 生成单样本、单类别的 SHAP Explanation
@@ -130,5 +152,5 @@ if st.button("Predict"):
     # 绘制 waterfall
     plt.figure()
     shap.plots.waterfall(single_sample_shap, max_display=9)
-    plt.savefig("shap_waterfall_plot.png", bbox_inches='tight', dpi=300)
+    #plt.savefig("shap_waterfall_plot.png", bbox_inches='tight', dpi=300)
     st.image("shap_waterfall_plot.png", caption="SHAP Waterfall Plot")
