@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 import joblib
 from openai import OpenAI
 from matplotlib import font_manager
-
+import os
 
 # 直接指定字体文件名（与 app.py 同目录）
-font_path = "simsun.ttc"
+font_path = os.path.join("simsun.ttc")
 # 创建字体对象
 my_font = font_manager.FontProperties(fname=font_path)
 plt.rcParams['font.sans-serif'] = [my_font.get_name()]
