@@ -9,13 +9,13 @@ from openai import OpenAI
 from matplotlib import font_manager
 import os
 
-# 直接指定字体文件名（与 app.py 同目录）
-font_path = os.path.join("simsun.ttc")
-# 创建字体对象
+# 确定字体文件路径
+font_path = "simsun.ttc"  # 与 app.py 同目录
 my_font = font_manager.FontProperties(fname=font_path)
-plt.rcParams['font.sans-serif'] = [my_font.get_name()]
-# 防止负号显示为方块
-plt.rcParams['axes.unicode_minus'] = False
+
+# 设置 matplotlib 全局字体
+plt.rcParams['axes.unicode_minus'] = False  # 防止负号显示为方块
+plt.rcParams['font.family'] = my_font.get_name()
 
 
 
