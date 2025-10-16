@@ -6,11 +6,60 @@ import shap
 import matplotlib.pyplot as plt
 import joblib
 from openai import OpenAI
-
-plt.rcParams['font.sans-serif'] = ['SimSun']  # 黑体（适用于 Windows）
-plt.rcParams['axes.unicode_minus'] = False    # 解决负号'-'显示为方块的问题
+from matplotlib import font_manager
 
 
+# 直接指定字体文件名（与 app.py 同目录）
+font_path = "simsun.ttc"
+# 创建字体对象
+my_font = font_manager.FontProperties(fname=font_path)
+plt.rcParams['font.sans-serif'] = [my_font.get_name()]
+# 防止负号显示为方块
+plt.rcParams['axes.unicode_minus'] = False
+
+
+
+def fun_shap():
+
+    # SHAP 解释
+    st.subheader("SHAP Force plot Explanation")
+
+    # 创建 SHAP 解释器，基于树模型（如随机森林）
+    explainer_shap = shap.Explainer(model)
+    # 计算 SHAP 值，用于解释模型的预测
+    shap_values = explainer_shap(pd.DataFrame(features, columns=feature_names))
+
+    # 力图
+    shap.force_plot(explainer_shap.expected_value[1], shap_values[0].values[:, 1], matplotlib=True, show=True,
+                        feature_names=feature_names)
+    plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
+    st.image("shap_force_plot.png", caption='SHAP Force Plot Explanation')
+    #st.write("shap_values.values.shape =", shap_values.values.shape)
+
+    # ---- 决策图（Decision Plot） ----
+    class_idx = 1#predicted_class  # 0或1
+    sv = shap_values.values[:, :, class_idx]  # shape (1, 9)
+    print("decision_plot input shape:", sv.shape)
+    plt.figure()
+    shap.decision_plot(
+        explainer_shap.expected_value[class_idx],
+        sv,feature_names=feature_names )
+    plt.savefig("shap_decision_plot.png", bbox_inches='tight', dpi=300)
+    st.image("shap_decision_plot.png", caption='SHAP Decision Plot')
+    # ---瀑布图
+    # 生成单样本、单类别的 SHAP Explanation
+    single_sample_shap = shap.Explanation(
+        values=shap_values.values[0, :, class_idx],  # shape (n_features,)
+        base_values=explainer_shap.expected_value[class_idx],  # base value for该类
+        data=features[0],  # 输入原始特征（长度n_features）
+        feature_names=feature_names
+    )
+
+    # 绘制 waterfall
+    plt.figure()
+    shap.plots.waterfall(single_sample_shap, max_display=9)
+    plt.savefig("shap_waterfall_plot.png", bbox_inches='tight', dpi=300)
+    st.image("shap_waterfall_plot.png", caption="SHAP Waterfall Plot")
 def chat():
     client = OpenAI(
         api_key="sk-5756c3dfa55645c6a2aa1ccbf38f2f49",
@@ -98,6 +147,10 @@ if st.button("Predict"):
     predicted_class = model.predict(features)[0]
     predicted_proba = round(model.predict_proba(features)[0][1], 3)
 
+
+if st.button("生成个性化建议"):
+    predicted_class = model.predict(features)[0]
+    predicted_proba = round(model.predict_proba(features)[0][1], 3)
     # 1. 组合用户所有输入特征，推荐用中英文，越详细越好
     user_info = (
         f"年龄: {age}岁，性别: {'男' if gender == 1 else '女'}，左手握力: {lgrip}kg，"
@@ -111,46 +164,7 @@ if st.button("Predict"):
         f"模型预测该用户的跌倒风险为：{'高' if predicted_class == 1 else '低'} "
         f"（概率约为 {predicted_proba * 100:.1f}%）。\n"
         f"请你作为专业健康管理师，基于以上信息和风险预测，给出详细、实用、个性化的健康建议（包含运动建议、居家环境、心理、饮食、家属提醒等）。请用中文作答。"
-    )
+    )#背景rag，专用知识库，临床资料 
     # 3. 调用函数
     chat()
-
-    # SHAP 解释
-    st.subheader("SHAP Force plot Explanation")
-
-    # 创建 SHAP 解释器，基于树模型（如随机森林）
-    explainer_shap = shap.Explainer(model)
-    # 计算 SHAP 值，用于解释模型的预测
-    shap_values = explainer_shap(pd.DataFrame(features, columns=feature_names))
-
-    # 力图
-    shap.force_plot(explainer_shap.expected_value[1], shap_values[0].values[:, 1], matplotlib=True, show=True,
-                        feature_names=feature_names)
-    plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
-    st.image("shap_force_plot.png", caption='SHAP Force Plot Explanation')
-    #st.write("shap_values.values.shape =", shap_values.values.shape)
-
-    # ---- 决策图（Decision Plot） ----
-    class_idx = 1#predicted_class  # 0或1
-    sv = shap_values.values[:, :, class_idx]  # shape (1, 9)
-    print("decision_plot input shape:", sv.shape)
-    plt.figure()
-    shap.decision_plot(
-        explainer_shap.expected_value[class_idx],
-        sv,feature_names=feature_names )
-    plt.savefig("shap_decision_plot.png", bbox_inches='tight', dpi=300)
-    st.image("shap_decision_plot.png", caption='SHAP Decision Plot')
-    # ---瀑布图
-    # 生成单样本、单类别的 SHAP Explanation
-    single_sample_shap = shap.Explanation(
-        values=shap_values.values[0, :, class_idx],  # shape (n_features,)
-        base_values=explainer_shap.expected_value[class_idx],  # base value for该类
-        data=features[0],  # 输入原始特征（长度n_features）
-        feature_names=feature_names
-    )
-
-    # 绘制 waterfall
-    plt.figure()
-    shap.plots.waterfall(single_sample_shap, max_display=9)
-    plt.savefig("shap_waterfall_plot.png", bbox_inches='tight', dpi=300)
-    st.image("shap_waterfall_plot.png", caption="SHAP Waterfall Plot")
+fun_shap()
