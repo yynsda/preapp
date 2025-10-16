@@ -9,14 +9,6 @@ from openai import OpenAI
 from matplotlib import font_manager
 import os
 
-# 指定中文字体文件
-font_path = "SimHei.ttf"  # 与 app.py 同目录
-my_font = font_manager.FontProperties(fname=font_path)
-
-# 全局 matplotlib 配置
-plt.rcParams['axes.unicode_minus'] = True  # 使用 Unicode 负号
-plt.rcParams['font.family'] = ['SimHei', 'DejaVu Sans']  # 中文用 SimHei，负号和英文用 DejaVu Sans
-
 
 
 def fun_shap():
@@ -80,15 +72,15 @@ def chat():
     st.write("💡 **个性化健康建议：**")
     st.markdown(advice)
 feature_zh_map = {
-    "tijian_lgrip": "左手握力(kg)",
-    "renkou_age": "年龄",
-    "shenghuo_sleep": "夜间睡眠时长(h)",
-    "jingshen_yiyu": "抑郁量表",
-    "shenghuo_wushui": "午睡时长(h)",
-    "tijian_height": "身高(cm)",
-    "tijian_weight": "体重(kg)",
-    "shenti_zhanli": "五次坐站测试等级",
-    "renkou_gender": "性别"
+    "tijian_lgrip": "Left Hand Grip (kg)",
+    "renkou_age": "Age",
+    "shenghuo_sleep": "Night Sleep Duration (h)",
+    "jingshen_yiyu": "Depression Scale",
+    "shenghuo_wushui": "Nap Duration (h)",
+    "tijian_height": "Height (cm)",
+    "tijian_weight": "Weight (kg)",
+    "shenti_zhanli": "Sit-to-Stand Test Level",
+    "renkou_gender": "Gender"
 }
 
 # 定义特征名称对应数据集中的列名
