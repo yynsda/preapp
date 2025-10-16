@@ -9,13 +9,13 @@ from openai import OpenAI
 from matplotlib import font_manager
 import os
 
-# 确定字体文件路径
-font_path = "simsun.ttc"  # 与 app.py 同目录
+# 指定中文字体文件
+font_path = "SimHei.ttf"  # 与 app.py 同目录
 my_font = font_manager.FontProperties(fname=font_path)
 
-# 设置 matplotlib 全局字体
-plt.rcParams['axes.unicode_minus'] = False  # 防止负号显示为方块
-plt.rcParams['font.family'] = my_font.get_name()
+# 全局 matplotlib 配置
+plt.rcParams['axes.unicode_minus'] = True  # 使用 Unicode 负号
+plt.rcParams['font.family'] = ['SimHei', 'DejaVu Sans']  # 中文用 SimHei，负号和英文用 DejaVu Sans
 
 
 
