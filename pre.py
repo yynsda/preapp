@@ -1,3 +1,13 @@
+# 导入所需的库
+import streamlit as st
+import numpy as np
+import pandas as pd
+import shap
+import matplotlib.pyplot as plt
+import joblib
+from openai import OpenAI
+from matplotlib import font_manager
+import os
 
 
 
@@ -150,5 +160,6 @@ if st.button("生成个性化建议"):
     # 3. 调用函数
     chat()
 fun_shap()
+
 
 
