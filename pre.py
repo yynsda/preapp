@@ -54,7 +54,7 @@ def fun_shap():
     st.image("shap_waterfall_plot.png", caption="SHAP Waterfall Plot")
 def chat():
     client = OpenAI(
-        api_key="sk-5756c3dfa55645c6a2aa1ccbf38f2f49",
+        api_key="sk-705c1e1bea26422a973f9e196dfc3ba5",
         base_url="https://api.deepseek.com"
     )
 
@@ -160,3 +160,4 @@ if st.button("生成个性化建议"):
     # 3. 调用函数
     chat()
 fun_shap()
+
