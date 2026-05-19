@@ -29,7 +29,7 @@ def fun_shap():
     ##st.write("shap_values.values.shape =", shap_values.values.shape)
 
     # ---- 决策图（Decision Plot） ----
-    #class_idx = 1#predicted_class  # 0或1
+    class_idx = 1#predicted_class  # 0或1
    #sv = shap_values.values[:, :, class_idx]  # shape (1, 9)
    #print("decision_plot input shape:", sv.shape)
    # plt.figure()
