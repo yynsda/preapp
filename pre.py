@@ -95,7 +95,7 @@ feature_names = [feature_zh_map.get(f, f) for f in feature_names]
 model = joblib.load('rf.pkl')
 scaler = joblib.load('scaler.pkl')
 # Streamlit 用户界面
-st.title("跌倒预测器")  # 设置网页标题
+st.title("老年人跌倒风险预测系统")  # 设置网页标题
 
 # 用户输入
 # 第一行
