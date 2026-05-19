@@ -22,22 +22,22 @@ def fun_shap():
     shap_values = explainer_shap(pd.DataFrame(features, columns=feature_names))
 
     # 力图
-    shap.force_plot(explainer_shap.expected_value[1], shap_values[0].values[:, 1], matplotlib=True, show=True,
-                        feature_names=feature_names)
-    plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
-    st.image("shap_force_plot.png", caption='SHAP Force Plot Explanation')
-    st.write("shap_values.values.shape =", shap_values.values.shape)
+    #shap.force_plot(explainer_shap.expected_value[1], shap_values[0].values[:, 1], matplotlib=True, show=True,
+    #                    feature_names=feature_names)
+    #plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
+    #st.image("shap_force_plot.png", caption='SHAP Force Plot Explanation')
+    ##st.write("shap_values.values.shape =", shap_values.values.shape)
 
     # ---- 决策图（Decision Plot） ----
-    class_idx = 1#predicted_class  # 0或1
-   sv = shap_values.values[:, :, class_idx]  # shape (1, 9)
-   print("decision_plot input shape:", sv.shape)
-    plt.figure()
-    shap.decision_plot(
-        explainer_shap.expected_value[class_idx],
-        sv,feature_names=feature_names )
+    #class_idx = 1#predicted_class  # 0或1
+   #sv = shap_values.values[:, :, class_idx]  # shape (1, 9)
+   #print("decision_plot input shape:", sv.shape)
+   # plt.figure()
+    #shap.decision_plot(
+    #    explainer_shap.expected_value[class_idx],
+    #    sv,feature_names=feature_names )
    # plt.savefig("shap_decision_plot.png", bbox_inches='tight', dpi=300)
-    st.image("shap_decision_plot.png", caption='SHAP Decision Plot')
+   # st.image("shap_decision_plot.png", caption='SHAP Decision Plot')
     # ---瀑布图
     # 生成单样本、单类别的 SHAP Explanation
     single_sample_shap = shap.Explanation(
