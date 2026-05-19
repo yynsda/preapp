@@ -120,7 +120,7 @@ with col7:
 with col8:
     yiyu = st.number_input("抑郁量表 (CESD-10 得分)", min_value=0, max_value=30, value=10, step=1)
 with col9:
-    zhanli = st.selectbox("五次坐站测试情况", options=[1, 2, 3, 4], format_func=lambda x: f"第 {x} 级")
+    zhanli = st.selectbox("久坐站立测试", options=[1, 2, 3, 4], format_func=lambda x: f"第 {x} 级")
 
 # 将用户输入组合成特征向量
 feature_values = [lgrip, age, sleep, yiyu, wushui, height, weight, zhanli, gender]
@@ -147,7 +147,7 @@ if st.button("生成个性化建议"):
     user_info = (
         f"年龄: {age}岁，性别: {'男' if gender == 1 else '女'}，左手握力: {lgrip}kg，"
         f"身高: {height}cm，体重: {weight}kg，夜间睡眠: {sleep}小时，午睡: {wushui}小时，"
-        f"抑郁量表: {yiyu}分，五次坐站测试等级: {zhanli}级。"
+        f"抑郁量表: {yiyu}分，久坐站立测试: {zhanli}级。"
     )
 
     # 2. 用英文或中文给LLM完整描述问题
