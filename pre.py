@@ -8,7 +8,10 @@ import joblib
 from openai import OpenAI
 from matplotlib import font_manager
 import os
-
+import json
+from openai import OpenAI
+with open("config.json","r",encoding="utf-8") as f:
+    config=json.load(f)
 
 
 def fun_shap():
@@ -54,7 +57,7 @@ def fun_shap():
     st.image("shap_waterfall_plot.png", caption="SHAP Waterfall Plot")
 def chat():
     client = OpenAI(
-        api_key="sk-705c1e1bea26422a973f9e196dfc3ba5",
+        api_key=config["API_KEY"],
         base_url="https://api.deepseek.com"
     )
 
