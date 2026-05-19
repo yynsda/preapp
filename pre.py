@@ -14,7 +14,7 @@ import os
 def fun_shap():
 
     # SHAP 解释
-    st.subheader("SHAP Force plot Explanation")
+    st.subheader("SHAP Waterfall plot Explanation")
 
     # 创建 SHAP 解释器，基于树模型（如随机森林）
     explainer_shap = shap.Explainer(model)
