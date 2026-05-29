@@ -12,6 +12,7 @@ import json
 from openai import OpenAI
 with open("config.json","r",encoding="utf-8") as f:
     config=json.load(f)
+import streamlit as st
 
 
 def fun_shap():
@@ -57,7 +58,7 @@ def fun_shap():
     st.image("shap_waterfall_plot.png", caption="SHAP Waterfall Plot")
 def chat():
     client = OpenAI(
-        api_key=config["API_KEY"],
+        api_key=st.secrets["deepseek_api_key"],
         base_url="https://api.deepseek.com"
     )
 
